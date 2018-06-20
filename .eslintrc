@@ -1,0 +1,4 @@
+//for finding problems with lint syntax in code editor
+{
+    "extends":"react-app"
+}
