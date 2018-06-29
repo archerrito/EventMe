@@ -12,7 +12,7 @@ class EventListItem extends Component {
                   <Item>
                     <Item.Image 
                       size="tiny" 
-                      circular src="https://randomuser.me/api/portraits/women/42.jpg" 
+                      circular 
                       src={event.hostPhotoURL}/>
                     <Item.Content>
                       <Item.Header as="a">Event Title</Item.Header>
