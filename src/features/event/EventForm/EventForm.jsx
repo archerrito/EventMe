@@ -31,7 +31,13 @@ class EventForm extends Component {
 
   onFormSubmit = (evt) => {
     evt.preventDefault();
-    this.props.createEvent(this.state.event);
+    //check if new event or event being created
+    //selected events have id's, events creating don't at this stage
+    if (this.state.event.id) {
+      this.props.updateEvent(this.state.event);
+    } else {
+      this.props.createEvent(this.state.event);
+    }
   }
 
   onInputChange = (evt) => {
