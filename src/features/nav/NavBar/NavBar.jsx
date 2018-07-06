@@ -28,13 +28,14 @@ class NavBar extends Component {
     }
 
     handleSignOut = () => {
-        this.props.logout();
+        this.props.firebase.logout();
         this.props.history.push('/');
     }
 
     render() {
         const { auth } = this.props;
-        const authenticated = auth.authenticated;
+        //check to see if authenticated, if empty, means no credentials in firebase
+        const authenticated = auth.isLoaded && !auth.isEmpty;
         return (
             <Menu inverted fixed="top">
                 <Container>
@@ -50,7 +51,7 @@ class NavBar extends Component {
                         <Button as={Link} to='/createEvent' floated="right" positive inverted content="Create Event" />
                     </Menu.Item>}
                     {authenticated ? (
-                        <SignedInMenu currentUser={auth.currentUser} signOut={this.handleSignOut} /> 
+                        <SignedInMenu auth={auth} signOut={this.handleSignOut} /> 
                     ) : (
                         <SignedOutMenu signIn={this.handleSignIn} register={this.handleRegister}/>
                     )}
