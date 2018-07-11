@@ -32,7 +32,7 @@ export const updateProfile = (user) =>
             //get url of image
             let downloadURL = await uploadFile.uploadTaskSnapshot.downloadURL;
             //get userdoc
-            let userDoc = await firestore.get(`users${user.uid}`);
+            let userDoc = await firestore.get(`users/${user.uid}`);
             //check if user has photo, if not update profile with new image
             if (!userDoc.data().photoURL) {
                 //update firestore documents
