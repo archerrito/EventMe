@@ -1,15 +1,34 @@
 import React, {Component} from 'react';
 import { connect } from 'react-redux';
+import { firestoreConnect } from 'react-redux-firebase';
+import { compose } from 'redux';
 import {Image, Segment, Header, Divider, Grid, Button, Card, Icon} from 'semantic-ui-react';
 import Dropzone from 'react-dropzone';
 import Cropper from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
 import { toastr } from 'react-redux-toastr';
-import { uploadProfileImage } from '../userActions';
+import { uploadProfileImage, deletePhoto } from '../userActions';
+
+const query = ({auth}) => {
+  return [
+    { collection: 'users',
+      doc: auth.uid,
+      subcollections: [{collection: 'photos'}],
+      storeAs: 'photos'
+}
+  ]
+}
 
 const actions = {
-  uploadProfileImage
+  uploadProfileImage,
+  deletePhoto
 }
+
+const mapState = (state) => ({
+  auth: state.firebase.auth,
+  profile: state.firebase.profile,
+  photos: state.firestore.ordered.photos
+})
 class PhotosPage extends Component {
   state = {
     files: [],
@@ -33,7 +52,14 @@ class PhotosPage extends Component {
       toastr.success('Success!', 'Photo has been uploaded')
     } catch (error) {
       toastr.error('Oops', error.message);
-      
+    }
+  }
+
+  handlePhotoDelete = (photo) => () => {
+    try {
+      this.props.deletePhoto(photo);
+    } catch (error) {
+      toastr.error('Oops', error.message)
     }
   }
 
@@ -58,6 +84,13 @@ class PhotosPage extends Component {
     }, 'image/jpeg')
   }
     render() {
+      const {photos, profile}= this.props;
+      let filteredPhotos;
+      if( photos) {
+        filteredPhotos = photos.filter(photo => {
+          return photo.url !== profile.photoURL
+        })
+      }
         return (
             <Segment>
                 <Header dividing size='large' content='Your Photos' />
@@ -112,23 +145,28 @@ class PhotosPage extends Component {
 
                 <Card.Group itemsPerRow={5}>
                     <Card>
-                        <Image src='https://randomuser.me/api/portraits/men/20.jpg'/>
+                        <Image src={profile.photoURL}/>
                         <Button positive>Main Photo</Button>
                     </Card>
-
-                        <Card >
-                            <Image
-                                src='https://randomuser.me/api/portraits/men/20.jpg'
-                            />
-                            <div className='ui two buttons'>
-                                <Button basic color='green'>Main</Button>
-                                <Button basic icon='trash' color='red' />
-                            </div>
-                        </Card>
+                    {photos && filteredPhotos.map((photo) => 
+                      <Card key={photo.id}>
+                      <Image
+                          src={photo.url}
+                      />
+                      <div className='ui two buttons'>
+                          <Button basic color='green'>Main</Button>
+                          <Button onClick={this.handlePhotoDelete(photo)} basic icon='trash' color='red' />
+                      </div>
+                      </Card>
+                    
+                    )}
                 </Card.Group>
             </Segment>
         );
     }
 }
 
-export default connect(null, actions)(PhotosPage);
+export default compose(
+  connect(mapState, actions),
+  firestoreConnect(auth => query(auth))
+)(PhotosPage);
