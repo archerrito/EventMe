@@ -9,6 +9,7 @@ import UserDetailedPhotos from './UserDetailedPhotos'
 import UserDetailedSidebar from './UserDetailedSidebar'
 import UserDetailedEvents from './UserDetailedEvents'
 import { userDetailedQuery } from '../userQueries';
+import LoadingComponent from '../../../app/layout/LoadingComponent';
 
 //ownProps gives access to params set in URL
 const mapState = (state, ownProps) => {
@@ -28,14 +29,21 @@ const mapState = (state, ownProps) => {
     profile,
     userUid,
     auth: state.firebase.auth,
-    photos: state.firestore.ordered.photos
+    photos: state.firestore.ordered.photos,
+    //know when page is loading
+    requesting: state.firestore.status.requesting
   }
 };
 
 class UserDetailedPage extends Component {
   render() {
-    const {profile, photos, auth, match} = this.props;
-    const isCurrentUser = auth.uid === match.params.id
+    const {profile, photos, auth, match, requesting} = this.props;
+    const isCurrentUser = auth.uid === match.params.id;
+    //check to see if any objects inside are set to true
+    const loading = Object.values(requesting).some(a => a=== true)
+    
+    if (loading) return <LoadingComponent inverted={true}/>
+
     return (
       <Grid>
         <UserDetailedHeader profile={profile}/>
