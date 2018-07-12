@@ -1,6 +1,7 @@
 /*global google*/
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { withFirestore } from 'react-redux-firebase';
 import { reduxForm, Field } from 'redux-form';
 import moment from 'moment';
 import Script from 'react-load-script';
@@ -19,16 +20,18 @@ import SelectInput from '../../../app/common/form/SelectInput';
 import DateInput from '../../../app/common/form/DateInput';
 import PlaceInput from '../../../app/common/form/PlaceInput';
 
-const mapState = (state, ownProps) => {
-  const eventId = ownProps.match.params.id;
+const mapState = (state) => {
 
   let event = {};
 
-  if (eventId && state.events.length > 0) {
-    event = state.events.filter(event => event.id === eventId)[0];
+  //get events, first item of array
+  if (state.firestore.ordered.events && state.firestore.ordered.events[0]) {
+    //assign to event
+    event = state.firestore.ordered.events[0];
   }
 
   return {
+    //initial value populated with event
     initialValues: event
   };
 };
@@ -68,6 +71,17 @@ class EventForm extends Component {
     scriptLoaded: false
   };
 
+  async componentDidMount() {
+    //give access to events in here
+    const {firestore, match} = this.props;
+    let event = await firestore.get(`events/${match.params.id}`);
+    if (event.exists) {
+      this.setState({
+        venueLatLng: event.data().venueLatLng
+      })
+    }
+  }
+
   handleScriptLoaded = () => this.setState({ scriptLoaded: true });
 
   handleCitySelect = selectedCity => {
@@ -97,7 +111,6 @@ class EventForm extends Component {
   };
 
   onFormSubmit = values => {
-    values.date = moment(values.date).format();
     values.venueLatLng = this.state.venueLatLng;
     if (this.props.initialValues.id) {
       this.props.updateEvent(values);
@@ -189,8 +202,6 @@ class EventForm extends Component {
   }
 }
 
-export default connect(mapState, actions)(
-  reduxForm({ form: 'eventForm', enableReinitialize: true, validate })(
-    EventForm
-  )
+export default withFirestore(connect(mapState, actions)(
+  reduxForm({ form: 'eventForm', enableReinitialize: true, validate })(EventForm))
 );

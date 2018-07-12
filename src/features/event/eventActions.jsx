@@ -3,6 +3,8 @@ import { DELETE_EVENT, UPDATE_EVENT, FETCH_EVENTS } from './eventConstants';
 import { asyncActionStart, asyncActionFinish, asyncActionError} from '../async/asyncActions';
 import { fetchSampleData } from '../../app/data/mockApi';
 import { createNewEvent } from '../../app/common/util/helpers';
+import { isMoment } from '../../../node_modules/moment';
+import moment from 'moment';
 
 export const fetchEvents = (events) => {
     return {
@@ -36,15 +38,15 @@ export const createEvent = (event) => {
 };
 
 export const updateEvent = (event) => {
-    return async dispatch => {
+    return async (dispatch, getState, {getFirestore}) => {
+        const firestore = getFirestore();
+        //check if date is different from existing data
+        if (event.date !== getState().firestore.ordered.events[0].date) {
+            event.date = moment(event.date).toDate();
+        }
         try {
-            dispatch({
-                type: UPDATE_EVENT,
-                //pass in to reducer
-                payload: {
-                    event
-                }
-            });
+            //pass in event we are updating
+            await firestore.update(`events/${event.id}`, event)
             toastr.success('Success!', 'Event has been updated')
         } catch (error) {
             toastr.error('Oops', 'Something went wrong')
