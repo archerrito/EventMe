@@ -3,19 +3,24 @@ import { connect } from 'react-redux';
 import { firestoreConnect, isLoaded, isEmpty } from 'react-redux-firebase';
 import { Grid } from 'semantic-ui-react';
 import EventList from '../EventList/EventList';
-import { deleteEvent } from '../eventActions';
+import { getEventsForDashboard } from '../eventActions';
 import Loadingcomponent from '../../../app/layout/LoadingComponent';
 import EventActivity from'../EventActivity/EventActivity';
 
 const mapState = (state) => ({
-  events: state.firestore.ordered.events,
+  events: state.events,
+  loading: state.async.loading
 })
 
 const actions = {
-  deleteEvent
+  getEventsForDashboard
 }
 
 class EventDashboard extends Component {
+
+  componentDidMount() {
+    this.props.getEventsForDashboard();
+  }
 
   handleDeleteEvent = (eventId) => () => {
     //pass in id, not equal to event id, return new array of all events that do not match id
@@ -29,8 +34,8 @@ class EventDashboard extends Component {
   }
 
   render() {
-    const {events} = this.props;
-    if (!isLoaded(events) || isEmpty(events)) return <Loadingcomponent inverted={true}/>
+    const {events, loading} = this.props;
+    if (loading) return <Loadingcomponent inverted={true}/>
     return (
       <Grid>
         <Grid.Column width={10}>

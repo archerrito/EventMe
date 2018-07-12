@@ -4,13 +4,7 @@ import { asyncActionStart, asyncActionFinish, asyncActionError} from '../async/a
 import { fetchSampleData } from '../../app/data/mockApi';
 import { createNewEvent } from '../../app/common/util/helpers';
 import moment from 'moment';
-
-export const fetchEvents = (events) => {
-    return {
-        type: FETCH_EVENTS,
-        payload: events
-    }
-}
+import firebase from '../../app/config/firebase';
 
 export const createEvent = (event) => {
     return async (dispatch, getState, {getFirestore}) => {
@@ -74,27 +68,30 @@ export const cancelToggle = (cancelled, eventId) =>
         }
     }
 
-export const deleteEvent = (eventId) => {
-    return {
-        type: DELETE_EVENT,
-        //pass in to reducer
-        payload: {
-            eventId
-        }
-    }
-}
+export const getEventsForDashboard = () =>
+async (dispatch, getState) => {
+    let today = new Date(Date.now());
+    const firestore = firebase.firestore();
+    const eventsQuery = firestore.collection('events').where('date', '>=', today);
+    console.log(eventsQuery);
+    try {
+        let querySnap = await eventsQuery.get();
+        let events = [];
 
-export const loadEvents = () => {
-    return async dispatch => {
-        try {
-            //
-            dispatch(asyncActionStart())
-            //hold array of events
-            let events = await fetchSampleData();
-            dispatch(fetchEvents(events))
-            dispatch(asyncActionFinish());
-        } catch (error) {
-            dispatch(asyncActionError())
+        //get events in docs
+        //run for loop through and attach to array
+        for (let i=0; i < querySnap.docs.length; i++) {
+            //spread query event at that index
+            //store as an array, get document id
+            //store in evt variable
+            let evt = {...querySnap.docs[i].data(), id:querySnap.docs[i].id};
+            events.push(evt);
+            //we have events in array, can add to our own reducer to display on page
         }
+        dispatch({type: FETCH_EVENTS, payload: {events}})
+        dispatch(asyncActionFinish());
+    } catch (error) {
+        console.log(error);
+        dispatch(asyncActionError());
     }
 }
