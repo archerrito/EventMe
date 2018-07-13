@@ -1,7 +1,9 @@
 import moment from 'moment';
 import cuid from 'cuid';
 import { toastr } from 'react-redux-toastr';
+import { FETCH_EVENTS } from '../event/eventConstants';
 import { asyncActionStart, asyncActionFinish, asyncActionError } from '../async/asyncActions';
+import firebase from '../../app/config/firebase';
 
 export const updateProfile = (user) =>
   async (dispatch, getState, {getFirebase}) => {
@@ -149,3 +151,68 @@ export const updateProfile = (user) =>
                 toastr.error('Oops', 'Something went wrong');
             }
         }
+
+        export const getUserEvents = (userUid, activeTab) =>
+        async (dispatch, getState) => {
+            dispatch(asyncActionStart());
+            const firestore = firebase.firestore();
+            const today = new Date(Date.now());
+            //query collection of events that user is going to
+            //only contains lookup fields
+            let eventsRef = firestore.collection('event_attendee');
+            let query;
+            switch (activeTab) {
+                case 1: //past events
+                    query = eventsRef
+                        .where('userUid', '==', userUid)
+                        //less than today
+                        .where('eventDate', '<=', today)
+                        .orderBy('eventDate', 'desc');
+                    break;
+                case 2: //future events
+                    query = eventsRef
+                        .where('userUid', '==', userUid)
+                        //more than today
+                        .where('eventDate', '>=', today)
+                        .orderBy('eventDate');
+                        break;
+                case 3: //hosted events
+                    query = eventsRef
+                        .where('userUid', '==', userUid)
+                        //host = true
+                        .where('host', '==', true)
+                        .orderBy('eventDate', 'desc');
+                            break;
+                default:
+                    query = eventsRef
+                        .where('userUid', '==', userUid)
+                        .orderBy('eventDate', 'desc');         
+            }
+            try {
+                //has events user attending depending on which query activated
+                let querySnap = await query.get();
+                let events =[];
+
+                for (let i = 0; i < querySnap.docs.length; i++) {
+                    //query events collection, get docs, in querysnap,
+                    // docs, current array index, get that data, 
+                    //specifically eventID, get to retrieve event document 
+                    //from firestore
+                    let evt = await firestore
+                        .collection('events')
+                        .doc(querySnap.docs[i]
+                        .data().eventId)
+                        .get();
+                    //pus into event array, pass in id, we have array of events
+                    events.push({...evt.data(), id: evt.id})
+                }
+
+                //dispatch action so we have in event reducer
+                dispatch({type: FETCH_EVENTS, payload: {events}})
+
+                dispatch(asyncActionFinish());
+            } catch (error) {
+                console.log(error)
+                dispatch(asyncActionError())
+            }           
+        };
