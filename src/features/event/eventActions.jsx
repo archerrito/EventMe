@@ -67,15 +67,43 @@ export const cancelToggle = (cancelled, eventId) =>
             console.log(error);
         }
     }
-
-export const getEventsForDashboard = () =>
+//pass last event as paramter to event dashboard
+//respresents last event returned
+export const getEventsForDashboard = (lastEvent) =>
 async (dispatch, getState) => {
     let today = new Date(Date.now());
     const firestore = firebase.firestore();
-    const eventsQuery = firestore.collection('events').where('date', '>=', today);
-    console.log(eventsQuery);
+    const eventsRef = firestore.collection('events');
     try {
-        let querySnap = await eventsQuery.get();
+        dispatch(asyncActionStart());
+        //use last event to start after when send query to firestore for paging
+        let startAfter = 
+        lastEvent && 
+        (await firestore
+            .collection('events')
+            .doc(lastEvent.id)
+            .get());
+        let query;
+
+        lastEvent 
+            ? (query = eventsRef
+                .where('date', '>=', today)
+                .orderBy('date')
+                .startAfter(startAfter)
+                .limit(2))
+            : (query = eventsRef
+                .where('date', '>=', today)
+                .orderBy('date')
+                .limit(2))
+        //where we capture the array of events
+        let querySnap = await query.get();
+
+        //If no more events in array, return at this point
+        if (querySnap.docs.length === 0) {
+            dispatch(asyncActionFinish());
+            return
+        }
+        
         let events = [];
 
         //get events in docs
@@ -88,8 +116,11 @@ async (dispatch, getState) => {
             events.push(evt);
             //we have events in array, can add to our own reducer to display on page
         }
+        //Use FetchEvents, and payload to pass
         dispatch({type: FETCH_EVENTS, payload: {events}})
         dispatch(asyncActionFinish());
+        //let component know in case it needs to update UI
+        return querySnap;
     } catch (error) {
         console.log(error);
         dispatch(asyncActionError());
