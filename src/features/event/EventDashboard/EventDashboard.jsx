@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { firestoreConnect, isLoaded, isEmpty } from 'react-redux-firebase';
+import { firestoreConnect } from 'react-redux-firebase';
 import { Grid, Button } from 'semantic-ui-react';
 import EventList from '../EventList/EventList';
 import { getEventsForDashboard } from '../eventActions';
@@ -18,8 +18,9 @@ const actions = {
 
 class EventDashboard extends Component {
   state = {
-    //
-    moreEvents: false
+    moreEvents: false,
+    loadingInitial: true,
+    loadedEvents: []
   }
 
   async componentDidMount() {
@@ -29,7 +30,16 @@ class EventDashboard extends Component {
 
     if (next && next.docs && next.docs.length > 1) {
       this.setState({
-        moreEvents: true
+        moreEvents: true,
+        loadingInitial: false
+      })
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.events !== nextProps.events) {
+      this.setState({
+        loadedEvents: [...this.state.loadedEvents, ...nextProps.events]
       })
     }
   }
@@ -53,13 +63,13 @@ class EventDashboard extends Component {
   }
 
   render() {
-    const {events, loading} = this.props;
-    if (loading) return <Loadingcomponent inverted={true}/>
+    const { loading } = this.props;
+    if (this.state.loadingInitial) return <Loadingcomponent inverted={true}/>
     return (
       <Grid>
         <Grid.Column width={10}>
-          <EventList deleteEvent={this.handleDeleteEvent} events={events} />
-          <Button onClick={this.getNextEvents} disabled={!this.state.moreEvents} content='More' color='green' floated='right' />
+          <EventList deleteEvent={this.handleDeleteEvent} events={this.state.loadedEvents} />
+          <Button loading={loading} onClick={this.getNextEvents} disabled={!this.state.moreEvents} content='More' color='green' floated='right' />
         </Grid.Column>
         <Grid.Column width={6}>
           <EventActivity />
