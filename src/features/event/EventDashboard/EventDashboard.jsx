@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { firestoreConnect, isLoaded, isEmpty } from 'react-redux-firebase';
-import { Grid } from 'semantic-ui-react';
+import { Grid, Button } from 'semantic-ui-react';
 import EventList from '../EventList/EventList';
 import { getEventsForDashboard } from '../eventActions';
 import Loadingcomponent from '../../../app/layout/LoadingComponent';
@@ -17,20 +17,39 @@ const actions = {
 }
 
 class EventDashboard extends Component {
+  state = {
+    //
+    moreEvents: false
+  }
 
-  componentDidMount() {
-    this.props.getEventsForDashboard();
+  async componentDidMount() {
+    //querysnap from event actions contained in variable
+    let next = await this.props.getEventsForDashboard();
+    console.log(next);
+
+    if (next && next.docs && next.docs.length > 1) {
+      this.setState({
+        moreEvents: true
+      })
+    }
+  }
+
+  getNextEvents = async () => {
+    const {events} = this.props;
+    //get last document received
+    let lastEvent = events && events[events.length -1];
+    console.log(lastEvent);
+    let next = await this.props.getEventsForDashboard(lastEvent);
+    console.log(next);
+    if (next && next.docs && next.docs.length <= 1) {
+      this.setState({
+        moreEvents: false
+      })
+    }
   }
 
   handleDeleteEvent = (eventId) => () => {
-    //pass in id, not equal to event id, return new array of all events that do not match id
-    // const updatedEvents = this.state.events.filter(e => e.id !== eventId);
-    // this.setState({
-    //   events: updatedEvents
-    //)}
-    //replaced with 
     this.props.deleteEvent(eventId);
-
   }
 
   render() {
@@ -40,6 +59,7 @@ class EventDashboard extends Component {
       <Grid>
         <Grid.Column width={10}>
           <EventList deleteEvent={this.handleDeleteEvent} events={events} />
+          <Button onClick={this.getNextEvents} disabled={!this.state.moreEvents} content='More' color='green' floated='right' />
         </Grid.Column>
         <Grid.Column width={6}>
           <EventActivity />
