@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux';
-import { withFirestore, firebaseConnect } from 'react-redux-firebase';
+import { withFirestore, firebaseConnect, isEmpty } from 'react-redux-firebase';
 import { compose } from 'redux';
 import { Grid } from 'semantic-ui-react';
 import EventDetailedHeader from './EventDetailedHeader';
@@ -11,7 +11,7 @@ import { objectToArray } from '../../../app/common/util/helpers';
 import { goingToEvent, cancelGoingToEvent } from '../../user/userActions';
 import { addEventComment } from '../eventActions';
 
-const mapState = (state) => {
+const mapState = (state, ownProps) => {
 
   let event = {};
 
@@ -22,7 +22,12 @@ const mapState = (state) => {
   return {
     event,
     //have access to authenticaiton cause don't render application until we do
-    auth: state.firebase.auth
+    auth: state.firebase.auth,
+    eventChat: 
+      //check to see if data is available
+      !isEmpty(state.firebase.data.event_chat) && 
+      //take event chat in firebase event chat, select matching id of event id
+      objectToArray(state.firebase.data.event_chat[ownProps.match.params.id])
   }
 }
 
@@ -45,7 +50,7 @@ class EventDetailedPage extends Component {
   }
 
   render() {
-    const {event, auth, goingToEvent, cancelGoingToEvent, addEventComment} = this.props;
+    const {event, auth, goingToEvent, cancelGoingToEvent, addEventComment, eventChat} = this.props;
     const attendees = event && event.attendees && objectToArray(event.attendees);
     const isHost = event.hostUid === auth.uid;
     //returns true/false, some tests is one object in array returns true
@@ -61,7 +66,7 @@ class EventDetailedPage extends Component {
           goingToEvent={goingToEvent}
           cancelGoingToEvent={cancelGoingToEvent}/>
         <EventDetailedInfo event={event}/>
-        <EventDetailedChat addEventComment={addEventComment} eventId={event.id}/>
+        <EventDetailedChat eventChat={eventChat} addEventComment={addEventComment} eventId={event.id}/>
       </Grid.Column>
       <Grid.Column width={5}>
         <EventDetailedSidebar attendees={attendees}/>
