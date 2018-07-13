@@ -5,6 +5,7 @@ import { fetchSampleData } from '../../app/data/mockApi';
 import { createNewEvent } from '../../app/common/util/helpers';
 import moment from 'moment';
 import firebase from '../../app/config/firebase';
+import { getFirebase } from '../../../node_modules/react-redux-firebase';
 
 export const createEvent = (event) => {
     return async (dispatch, getState, {getFirestore}) => {
@@ -126,3 +127,16 @@ async (dispatch, getState) => {
         dispatch(asyncActionError());
     }
 }
+
+export const addEventComment = (eventId, comment) =>
+    async (dispatch, getState, {getFirebase}) => {
+        const firebase = getFirebase();
+
+        try {
+            //give location in firebase, pass comment object
+            await firebase.push(`event_chat/${eventId}`, comment)
+        } catch (error) {
+            console.log(error);
+            toastr.error('Oops', 'Problem adding comment');
+        }
+    }
