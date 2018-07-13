@@ -73,6 +73,6 @@ class EventDetailedPage extends Component {
 
 export default compose(
   withFirestore,
-  (connect(mapState, actions),
+  connect(mapState, actions),
   firebaseConnect((props) => ([`event_chat/${props.match.params.id}`]))
-))(EventDetailedPage);
+)(EventDetailedPage);
