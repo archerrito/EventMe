@@ -216,3 +216,31 @@ export const updateProfile = (user) =>
                 dispatch(asyncActionError())
             }           
         };
+
+        export const followUser = userToFollow => async (dispatch, getState, {getFirestore}) => {
+            //get firestore and user
+            const firestore = getFirestore();
+            const user = firestore.auth().currentUser;
+            //following object inside our collection
+            const following = {
+              photoURL: userToFollow.photoURL || '/assets/user.png',
+              city: userToFollow.city || 'unknown city',
+              displayName: userToFollow.displayName
+            }
+            try {
+                //use firestore set because we know firestore id of document we will be creating
+              await firestore.set(
+                {
+                    //keep inside users collection
+                  collection: 'users',
+                  doc: user.uid,
+                  //keep usertofollow id in subcollection called following
+                  subcollections: [{collection: 'following', doc: userToFollow.id}]
+                },
+                //add object, which will get created
+                following
+              );
+            } catch (error) {
+              console.log(error);
+            }
+          }
