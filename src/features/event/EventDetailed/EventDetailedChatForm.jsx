@@ -7,8 +7,10 @@ class EventDetailedChatForm extends Component {
   
     handleCommentSubmit = values => {
         //reset from form in component
-        const {addEventComment, reset, eventId} = this.props;
+        const {addEventComment, reset, eventId, closeForm} = this.props;
         addEventComment(eventId, values);
+        reset();
+        closeForm();
     }
   
     render() {
@@ -31,4 +33,4 @@ class EventDetailedChatForm extends Component {
   }
 }
 
-export default reduxForm({form: 'eventChat'})(EventDetailedChatForm);
+export default reduxForm({Fields: 'comment'})(EventDetailedChatForm);

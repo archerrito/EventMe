@@ -1,12 +1,36 @@
-import React from 'react'
+import React, { Component } from 'react'
 import { Segment, Header, Comment } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import distanceInWords from 'date-fns/distance_in_words';
 import EventDetailedChatForm from './EventDetailedChatForm';
 
-const EventDetailedChat = ({addEventComment, eventId, eventChat}) => {
-  return (
-        <div>
+class EventDetailedChat extends Component {
+
+  state = {
+    showReplyForm: false,
+    selectedCommentId: null
+  }
+
+  handleOpenReplyForm = (id)=> () => {
+    this.setState({
+      showReplyForm: true,
+      selectedCommentId: id
+    })
+  }
+
+  handleCloseReplyForm= () => {
+    this.setState({
+      selectedCommentId: null,
+      showReplyForm: false
+    })
+  }
+
+  render() {
+
+    const {addEventComment, eventId, eventChat} = this.props;
+    const {showReplyForm, selectedCommentId} = this.state;
+    return (
+      <div>
           <Segment
             textAlign="center"
             attached="top"
@@ -29,17 +53,26 @@ const EventDetailedChat = ({addEventComment, eventId, eventChat}) => {
                   </Comment.Metadata>
                   <Comment.Text>{comment.text}</Comment.Text>
                   <Comment.Actions>
-                    <Comment.Action>Reply</Comment.Action>
+                    <Comment.Action onClick={this.handleOpenReplyForm(comment.id)}>Reply</Comment.Action>
+                  {showReplyForm && selectedCommentId === comment.id && (
+                    <EventDetailedChatForm 
+                      addEventComment={addEventComment} 
+                      eventId = {eventId}
+                      form={`reply_${comment.id}`}
+                      closeForm={this.handleCloseReplyForm}
+                    />
+                  )}
                   </Comment.Actions>
                 </Comment.Content>
               </Comment>
             ))}
 
             </Comment.Group>
-            <EventDetailedChatForm addEventComment={addEventComment} eventId={eventId}/>
+            <EventDetailedChatForm addEventComment={addEventComment} eventId={eventId} form={'newComment'}/>
           </Segment>
         </div>
-  )
+    )
+  }
 }
 
 export default EventDetailedChat;
