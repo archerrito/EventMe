@@ -47,7 +47,7 @@ class UserDetailedPage extends Component {
   async componentDidMount() {
     //have access to from userUid props
     let events = await this.props.getUserEvents(this.props.userUid);
-    //console.log(events);
+    console.log(events);
   }
 
   changeTab = (e, data) => {
