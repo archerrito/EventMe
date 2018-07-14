@@ -28,3 +28,21 @@ export const createNewEvent = (user, photoURL, event) => {
         }
     }
 }
+
+//take in dataset, our existing flat chat array
+export const createDataTree = dataset => {
+    //starts with null object
+    let hashTable = Object.create(null);
+    //add item into hashtable with id, spread across, add array called child nodes
+    //each element, parent or child will have an array called child nodes
+    dataset.forEach(a => hashTable[a.id] = {...a, childNodes: []});
+    //add empty array
+    let dataTree = [];
+    //loop over our dataset
+    dataset.forEach(a => {
+        //if parent, add in as parent, if not, add in as child of parent id
+        if (a.parentId) hashTable[a.parentId].childNodes.push(hashTable[a.id]);
+        else dataTree.push(hashTable[a.id])
+    });
+    return dataTree
+};
