@@ -70,3 +70,64 @@ exports.cancelActivity = functions.firestore.document('events/{eventId}').onUpda
         return console.log('Error adding activity', err);
       });
   });
+
+  exports.userFollowing = functions.firestore
+  // track followerUid, person clicked button
+  .document('users/{followerUid}/following/{followingUid}')
+  //triggers new document, event and context give us params
+  .onCreate((event, context) => {
+    console.log('v1');
+    const followerUid = context.params.followerUid;
+    const followingUid = context.params.followingUid;
+
+    const followerDoc = admin
+      .firestore()
+      .collection('users')
+      //personal user's id
+      .doc(followerUid);
+
+    console.log(followerDoc);
+
+    //get current users document to put into followers collection of user we are following
+    return followerDoc.get().then(doc => {
+      let userData = doc.data();
+      console.log({ userData });
+      let follower = {
+        displayName: userData.displayName,
+        photoURL: userData.photoURL || '/assets/user.png',
+        city: userData.city || 'unknown city'
+      };
+      //add to firestore
+      return admin
+        .firestore()
+        .collection('users')
+        //user we're following id
+        .doc(followingUid)
+        //in followed user collection, add follower id
+        .collection('followers')
+        .doc(followerUid)
+        .set(follower);
+    });
+  });
+
+  exports.unfollowUser = functions.firestore
+  .document('users/{followerUid}/following/{followingUid}')
+  //tracks delete event for location above with follower uid that is following uid 
+  //when stops following, delete latter
+  .onDelete((event, context) => {
+    return admin
+      .firestore()
+      .collection('users')
+      //want to delete this particular document from users collection
+      .doc(context.params.followingUid)
+      .collection('followers')
+      //delete from other users collection as well
+      .doc(context.params.followerUid)
+      .delete()
+      .then(() => {
+        return console.log('doc deleted');
+      })
+      .catch(err => {
+        return console.log(err);
+      });
+  });

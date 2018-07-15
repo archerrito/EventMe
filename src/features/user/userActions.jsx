@@ -244,3 +244,23 @@ export const updateProfile = (user) =>
               console.log(error);
             }
           }
+
+            //take profile of user seeking to unfollow
+          export const unfollowUser  = (userToUnfollow) =>
+          //setup for firestore and user variables.
+          async (dispatch, getState, {getFirestore}) => {
+            const firestore = getFirestore();
+            const user = firestore.auth().currentUser;
+            try {
+              await firestore.delete({
+                  //delete from users collection
+                collection: 'users',
+                //from user.uid
+                doc: user.uid,
+                //in following colleciton, match what was sent in
+                subcollections: [{collection: 'following', doc: userToUnfollow.id}]
+              })
+            } catch (error) {
+              console.log(error)
+            }
+          }
