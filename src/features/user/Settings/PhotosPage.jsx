@@ -59,7 +59,7 @@ class PhotosPage extends Component {
 
   handlePhotoDelete = (photo) => async () => {
     try {
-      this.props.deletePhoto(photo);
+      await this.props.deletePhoto(photo);
     } catch (error) {
       toastr.error('Oops', error.message)
     }
