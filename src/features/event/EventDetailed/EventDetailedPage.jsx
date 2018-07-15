@@ -21,6 +21,7 @@ const mapState = (state, ownProps) => {
 
   return {
     event,
+    loading: state.async.loading,
     //have access to authenticaiton cause don't render application until we do
     auth: state.firebase.auth,
     eventChat: 
@@ -50,7 +51,7 @@ class EventDetailedPage extends Component {
   }
 
   render() {
-    const {event, auth, goingToEvent, cancelGoingToEvent, addEventComment, eventChat} = this.props;
+    const { loading, event, auth, goingToEvent, cancelGoingToEvent, addEventComment, eventChat} = this.props;
     const attendees = event && event.attendees && objectToArray(event.attendees);
     const isHost = event.hostUid === auth.uid;
     //returns true/false, some tests is one object in array returns true
@@ -61,7 +62,8 @@ class EventDetailedPage extends Component {
     return (
       <Grid>
       <Grid.Column width={10}>
-        <EventDetailedHeader 
+        <EventDetailedHeader
+        loading={loading} 
           event = {event} 
           isHost={isHost} 
           isGoing={isGoing} 
