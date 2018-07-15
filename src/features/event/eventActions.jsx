@@ -4,6 +4,7 @@ import { asyncActionStart, asyncActionFinish, asyncActionError} from '../async/a
 import { createNewEvent } from '../../app/common/util/helpers';
 import moment from 'moment';
 import firebase from '../../app/config/firebase';
+import compareAsc from 'date-fns/compare_asc';
 
 export const createEvent = (event) => {
     return async (dispatch, getState, {getFirestore}) => {
@@ -29,22 +30,51 @@ export const createEvent = (event) => {
     };
 };
 
-export const updateEvent = (event) => {
-    return async (dispatch, getState, {getFirestore}) => {
-        const firestore = getFirestore();
-        //check if date is different from existing data
-        if (event.date !== getState().firestore.ordered.events[0].date) {
-            event.date = moment(event.date).toDate();
+export const updateEvent = event => {
+    return async (dispatch, getState) => {
+      dispatch(asyncActionStart());
+      const firestore = firebase.firestore();
+
+      //check if date is different from existing data
+      if (event.date !== getState().firestore.ordered.events[0].date) {
+        event.date = moment(event.date).toDate();
+      }
+      try {
+        //get ref to event doc
+        let eventDocRef = firestore.collection('events').doc(event.id);
+        //compare existing date inside redux state, with event date from form
+        let dateEqual = compareAsc(getState().firestore.ordered.events[0].date.toDate(), event.date);
+        if (dateEqual !== 0) {
+          let batch = firestore.batch();
+          await batch.update(eventDocRef, event);
+  
+          //take care of attendees
+          let eventAttendeeRef = firestore.collection('event_attendee');
+          let eventAttendeeQuery = await eventAttendeeRef.where('eventId', '==', event.id);
+          //gives us documents inside event attendee query snapshot
+          //ones we will need to update
+          let eventAttendeeQuerySnap = await eventAttendeeQuery.get();
+  
+          for (let i = 0; i < eventAttendeeQuerySnap.docs.length; i++) {
+              //get doc reference
+            let eventAttendeeDocRef = await firestore.collection('event_attendee').doc(eventAttendeeQuerySnap.docs[i].id);
+            await batch.update(eventAttendeeDocRef, {
+              eventDate: event.date
+            })
+          }
+          await batch.commit();
+        } else {
+          await eventDocRef.update(event);
         }
-        try {
-            //pass in event we are updating
-            await firestore.update(`events/${event.id}`, event)
-            toastr.success('Success!', 'Event has been updated')
-        } catch (error) {
-            toastr.error('Oops', 'Something went wrong')
-        }
+        dispatch(asyncActionFinish());
+        toastr.success('Success', 'Event has been updated');
+      } catch (error) {
+        console.log(error);
+        dispatch(asyncActionError());
+        toastr.error('Oops', 'Something went wrong');
+      }
     };
-}
+  };
 
 export const cancelToggle = (cancelled, eventId) =>
     async (dispatch, getState, {getFirestore}) => {

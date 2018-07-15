@@ -88,18 +88,55 @@ export const updateProfile = (user) =>
     }
   }
 
-  export const setMainPhoto = photo =>
-    async (dispatch, getState, {getFirebase}) => {
-        const firebase = getFirebase();
-        try {
-            return await firebase.updateProfile({
-                photoURL: photo.url
-            });
-        } catch (error) {
-            console.log(error)
-            throw new Error('Problem setting main photo');
+  export const setMainPhoto = photo => async (dispatch, getState) => {
+    dispatch(asyncActionStart())
+    const firestore = firebase.firestore();
+    const user = firebase.auth().currentUser;
+    const today = new Date(Date.now());
+    let userDocRef = firestore.collection('users').doc(user.uid);
+    let eventAttendeeRef = firestore.collection('event_attendee');
+    //set batch to commit to firestore
+    //used to update data over time, 
+    //photos from user account on 
+    try {
+      let batch = firestore.batch();
+  
+      await batch.update(userDocRef, {
+        photoURL: photo.url
+      });
+    //update events user is attending and hosting  
+      let eventQuery = await eventAttendeeRef.where('userUid', '==', user.uid).where('eventDate', '>', today);
+    //gives querysnapshot of documents with where clauses
+    //can loop over query, add updates we want to apply to our batch
+      let eventQuerySnap = await eventQuery.get();
+  
+      for (let i=0; i<eventQuerySnap.docs.length; i++) {
+        //gets the particular document reference
+        let eventDocRef = await firestore.collection('events').doc(eventQuerySnap.docs[i].data().eventId)
+        //check if user is hosting
+        let event = await eventDocRef.get();
+        if (event.data().hostUid === user.uid) {
+          batch.update(eventDocRef, {
+            hostPhotoURL: photo.url,
+            [`attendees.${user.uid}.photoURL`]: photo.url
+          })
+        } else {
+        //contains all updates need to apply when we set main photo
+          batch.update(eventDocRef, {
+            [`attendees.${user.uid}.photoURL`]: photo.url
+          })
         }
+      }
+      console.log(batch);
+      await batch.commit();
+      dispatch(asyncActionFinish())
+    } catch (error) {
+      console.log(error);
+      //sets loading flag to off so user doesn't see loading indicator
+      dispatch(asyncActionError())
+      throw new Error('Problem setting main photo');
     }
+  };
 
     export const goingToEvent = (event) =>
         async (dispatch, getState, {getFirestore}) => {
