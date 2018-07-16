@@ -8,6 +8,7 @@ import EventDetailedHeader from './EventDetailedHeader';
 import EventDetailedInfo from './EventDetailedInfo';
 import EventDetailedChat from './EventDetailedChat';
 import EventDetailedSidebar from './EventDetailedSidebar';
+import LoadingComponent from '../../../app/layout/LoadingComponent';
 import { objectToArray, createDataTree } from '../../../app/common/util/helpers';
 import { goingToEvent, cancelGoingToEvent } from '../../user/userActions';
 import { addEventComment } from '../eventActions';
@@ -22,6 +23,7 @@ const mapState = (state, ownProps) => {
   }
 
   return {
+    requesting: state.firestore.status.requesting,
     event,
     loading: state.async.loading,
     //have access to authenticaiton cause don't render application until we do
@@ -43,6 +45,10 @@ const actions= {
 
 class EventDetailedPage extends Component {
 
+  state = {
+    initialLoading: true
+  }
+
   async componentDidMount() {
     const {firestore, match} = this.props;
     //check if in existence to display 404
@@ -52,6 +58,9 @@ class EventDetailedPage extends Component {
       this.props.history.push('/error');
     }
     await firestore.setListener(`events/${match.params.id}`);
+    this.setState({
+      initialLoading: false
+    })
   }
 
   async componentWillUnmount() {
@@ -60,7 +69,18 @@ class EventDetailedPage extends Component {
   }
 
   render() {
-    const { openModal, loading, event, auth, goingToEvent, cancelGoingToEvent, addEventComment, eventChat} = this.props;
+    const { 
+      openModal, 
+      loading, 
+      event, auth, 
+      goingToEvent, 
+      cancelGoingToEvent, 
+      addEventComment, 
+      eventChat,
+      requesting,
+      match
+    } = this.props;
+
     const attendees = event && event.attendees && objectToArray(event.attendees);
     const isHost = event.hostUid === auth.uid;
     //returns true/false, some tests is one object in array returns true
@@ -68,6 +88,10 @@ class EventDetailedPage extends Component {
     const isGoing = attendees && attendees.some(a => a.id === auth.uid);
     const chatTree = !isEmpty(eventChat) && createDataTree(eventChat);
     const authenticated = auth.isLoaded && !auth.isEmpty;
+    const loadingEvent = requesting[`events/${match.params.id}`];
+
+    //improved loading experience for event detailed page
+    if (loadingEvent || this.state.initialLoading) return <LoadingComponent inverted={true}/>
 
     return (
       <Grid>
