@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux';
+import { toastr } from 'react-redux-toastr';
 import { withFirestore, firebaseConnect, isEmpty } from 'react-redux-firebase';
 import { compose } from 'redux';
 import { Grid } from 'semantic-ui-react';
@@ -44,6 +45,12 @@ class EventDetailedPage extends Component {
 
   async componentDidMount() {
     const {firestore, match} = this.props;
+    //check if in existence to display 404
+    let event = await firestore.get(`events/${match.params.id}`);
+    if (!event.exists) {
+      toastr.error('Not found', 'This is not the event your are looking for');
+      this.props.history.push('/error');
+    }
     await firestore.setListener(`events/${match.params.id}`);
   }
 
