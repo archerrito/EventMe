@@ -128,5 +128,6 @@ class EventDetailedPage extends Component {
 export default compose(
   withFirestore,
   connect(mapState, actions),
-  firebaseConnect((props) => ([`event_chat/${props.match.params.id}`]))
+  //checks auth status before checking firebase
+  firebaseConnect((props) => props.auth.isloaded && !props.auth.isEmpty && ([`event_chat/${props.match.params.id}`]))
 )(EventDetailedPage);
