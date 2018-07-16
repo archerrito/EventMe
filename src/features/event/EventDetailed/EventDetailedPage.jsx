@@ -81,7 +81,9 @@ class EventDetailedPage extends Component {
       match
     } = this.props;
 
-    const attendees = event && event.attendees && objectToArray(event.attendees);
+    const attendees = event && event.attendees && objectToArray(event.attendees).sort(function(a, b) {
+      return a.joinDate - b.joinDate;
+    });
     const isHost = event.hostUid === auth.uid;
     //returns true/false, some tests is one object in array returns true
     //if attendee is equal to auth id
