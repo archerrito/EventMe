@@ -42,4 +42,6 @@ store.firebaseAuthIsReady.then(() => {
     render();
 })
 
+//happens after render has taken place
+//only in production build
 registerServiceWorker();
