@@ -129,5 +129,6 @@ export default compose(
   withFirestore,
   connect(mapState, actions),
   //checks auth status before checking firebase
-  firebaseConnect((props) => props.auth.isloaded && !props.auth.isEmpty && ([`event_chat/${props.match.params.id}`]))
+  firebaseConnect((props) => props.auth.isloaded && 
+  !props.auth.isEmpty && [`event_chat/${props.match.params.id}`])
 )(EventDetailedPage);
