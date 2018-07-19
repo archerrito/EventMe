@@ -6,12 +6,12 @@ import moment from 'moment';
 import firebase from '../../app/config/firebase';
 import compareAsc from 'date-fns/compare_asc';
 
-export const createEvent = (event) => {
+export const createEvent = event => {
     return async (dispatch, getState, {getFirestore}) => {
         const firestore = getFirestore();
         const user = firestore.auth().currentUser;
         //get access to redux state, pull out info. Access to user photo
-        const photoURL = getState().firebase.profile.photoURL;
+        const photoURL = getState().firebase.profile.avatarUrl;
         let newEvent = createNewEvent(user, photoURL, event);
         try {
             //creates new event in collection in firestore
@@ -165,7 +165,7 @@ export const addEventComment = (eventId, values, parentId) =>
         let newComment = {
             parentId: parentId,
             displayName: profile.displayName,
-            photoURL: profile.photoURL || '/assets/user.png',
+            photoURL: profile.avatarUrl || '/assets/user.png',
             uid: user.uid,
             text: values.comment,
             date: Date.now()

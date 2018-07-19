@@ -11,7 +11,7 @@ class EventActivityItem extends Component {
                 return (
                     <div>
                         New Event: {' '}
-                        <Feed.User as={Link} to={{pathname: '/profile/' + activity.hostUid}}>{activity.photoURL}</Feed.User> {' '}
+                        <Feed.User as={Link} to={{pathname: '/profile/' + activity.hostUid}}>{activity.hostedBy}</Feed.User> {' '}
                         is hosting {' '}
                         <Link to={{pathname: '/event/' + activity.eventId}}>{activity.title}</Link>
                     </div>
@@ -43,7 +43,7 @@ class EventActivityItem extends Component {
                         {this.renderSummary(activity)}
                     </Feed.Summary>
                     <Feed.Meta>
-                        <Feed.Date>{distanceInWordsToNow(activity.timestamp)} ago</Feed.Date>
+                        <Feed.Date>{distanceInWordsToNow(activity.timestamp.toDate())} ago</Feed.Date>
                     </Feed.Meta>
                 </Feed.Content>
             </Feed.Event>

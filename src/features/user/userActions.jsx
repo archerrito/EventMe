@@ -5,21 +5,21 @@ import { FETCH_EVENTS } from '../event/eventConstants';
 import { asyncActionStart, asyncActionFinish, asyncActionError } from '../async/asyncActions';
 import firebase from '../../app/config/firebase';
 
-export const updateProfile = (user) =>
-  async (dispatch, getState, {getFirebase}) => {
-    const firebase = getFirebase();
-    const {isLoaded, isEmpty, ...updatedUser} = user;
-    if (updatedUser.dateOfBirth !== getState().firebase.profile.dateOfBirth) {
-      updatedUser.dateOfBirth = moment(updatedUser.dateOfBirth).toDate();
-    }
-
-    try {
-      await firebase.updateProfile(updatedUser);
-      toastr.success('Success', 'Profile updated')
-    } catch (error) {
-      console.log(error)
-    }
-  }
+export const updateProfile = (user) => 
+    async (dispatch, getState, { getFirebase }) => {
+        const firebase = getFirebase();
+        const { isLoaded, isEmpty, ...updatedUser } = user;
+        if (updatedUser.dateOfBirth !== getState().firebase.profile.dateOfBirth) {
+        updatedUser.dateOfBirth = moment(updatedUser.dateOfBirth).toDate();
+        }
+    
+        try {
+        await firebase.updateProfile(updatedUser);
+        toastr.success('Success', 'Profile updated');
+        } catch (error) {
+        console.log(error);
+        }
+  };
 
   export const uploadProfileImage =(file, fileName) =>
   async(dispatch, getState, {getFirebase, getFirestore}) => {
@@ -145,10 +145,11 @@ export const updateProfile = (user) =>
             const user = firebase.auth().currentUser;
             //want to get from firebase profile, 
             const profile = getState().firebase.profile;
+            console.log(profile);
             const attendee = {
                 going: true,
                 joinDate: Date.now(),
-                photoURL: profile.photoURL|| '/assets/user.png',
+                photoURL: profile.avatarUrl || '/assets/user.png',
                 displayName: profile.displayName,
                 host: false
             }

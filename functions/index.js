@@ -3,17 +3,17 @@ const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 
 const newActivity = (type, event, id) => {
-    return {
-      type: type,
-      eventDate: event.date,
-      //hostedBy: event.hostedBy,
-      title: event.title,
-      photoURL: event.hostPhotoURL,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-      hostUid: event.hostUid,
-      eventId: id
-    };
+  return {
+    type: type,
+    eventDate: event.date,
+    hostedBy: event.hostedBy,
+    title: event.title,
+    photoURL: event.hostPhotoURL,
+    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    hostUid: event.hostUid,
+    eventId: id
   };
+};
 
 exports.createActivity = functions.firestore
     //specify document we want, and Id ads whats created

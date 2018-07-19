@@ -15,7 +15,8 @@ export const createNewEvent = (user, photoURL, event) => {
     return {
         ...event,
         hostUid: user.uid,
-        hostPhotoURL: user.displayName || '/assets/user/png',
+        hostedBy: user.displayName,
+        hostPhotoURL: photoURL || '/assets/user/png',
         createdAt: Date.now(),
         attendees: {
             [user.uid]: {
