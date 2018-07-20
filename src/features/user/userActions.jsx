@@ -6,14 +6,19 @@ import { asyncActionStart, asyncActionFinish, asyncActionError } from '../async/
 import firebase from '../../app/config/firebase';
 
 export const updateProfile = (user) => 
-    async (dispatch, getState, { getFirebase }) => {
+    async (dispatch, getState, { getFirebase, getFirestore }) => {
         const firebase = getFirebase();
+        const firestore = getFirestore();
+        const currentUser = firebase.auth().currentUser;
+        const currentUserCreationDate = firestore.auth().currentUser.metadata.creationTime;
+
         const { isLoaded, isEmpty, ...updatedUser } = user;
         if (updatedUser.dateOfBirth !== getState().firebase.profile.dateOfBirth) {
         updatedUser.dateOfBirth = moment(updatedUser.dateOfBirth).toDate();
         }
-    
-        try {
+
+        try {       
+        await firestore.set(`users/${currentUser.uid}`, {createdAt: currentUserCreationDate, ...updatedUser})     
         await firebase.updateProfile(updatedUser);
         toastr.success('Success', 'Profile updated');
         } catch (error) {
