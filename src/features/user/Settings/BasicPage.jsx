@@ -6,20 +6,15 @@ import DateInput from "../../../app/common/form/DateInput";
 import PlaceInput from "../../../app/common/form/PlaceInput";
 import TextInput from "../../../app/common/form/TextInput";
 import RadioInput from "../../../app/common/form/RadioInput";
-import updateProfile from "../userActions";
 
 class BasicPage extends Component {
-
-    onFormSubmit = async values => {
-        this.props.updateProfile(values);
-    }
 
     render() {
         const {pristine, submitting, handleSubmit, updateProfile} = this.props;
         return (
             <Segment>
                 <Header dividing size='large' content='Basics' />
-                <Form onSubmit={this.props.handleSubmit(this.onFormSubmit)}>
+                <Form onSubmit={handleSubmit(updateProfile)}>
                     <Field
                         width={8}
                         name='displayName'
