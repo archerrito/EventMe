@@ -94,7 +94,7 @@ exports.cancelActivity = functions.firestore.document('events/{eventId}').onUpda
       console.log({ userData });
       let follower = {
         displayName: userData.displayName,
-        photoURL: userData.photoURL || '/assets/user.png',
+        photoURL: userData.avatarUrl || '/assets/user.png',
         city: userData.city || 'unknown city'
       };
       //add to firestore
