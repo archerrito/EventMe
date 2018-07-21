@@ -274,7 +274,7 @@ export const updateProfile = (user) =>
             const user = firestore.auth().currentUser;
             //following object inside our collection
             const following = {
-              photoURL: userToFollow.photoURL || '/assets/user.png',
+              photoURL: userToFollow.avatarUrl || '/assets/user.png',
               city: userToFollow.city || 'unknown city',
               displayName: userToFollow.displayName
             }
@@ -291,6 +291,7 @@ export const updateProfile = (user) =>
                 //add object, which will get created
                 following
               );
+              toastr.success('Success', 'User successfully followed');
             } catch (error) {
               console.log(error);
             }
@@ -310,7 +311,8 @@ export const updateProfile = (user) =>
                 doc: user.uid,
                 //in following colleciton, match what was sent in
                 subcollections: [{collection: 'following', doc: userToUnfollow.id}]
-              })
+              });
+              toastr.success('Success', 'Successfully unfollowed user');
             } catch (error) {
               console.log(error)
             }
