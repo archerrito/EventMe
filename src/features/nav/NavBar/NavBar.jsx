@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { withFirebase } from 'react-redux-firebase';
-import { Menu, Container, Button } from 'semantic-ui-react';
+import { Menu, Container } from 'semantic-ui-react';
 import { NavLink, Link, withRouter } from 'react-router-dom';
-import SignedOutMenu from '../Menus/SignedOutMenu';
+import StrategyMenu from '../Menus/StrategyMenu';
+import CalendarMenu from '../Menus/CalendarMenu';
 import SignedInMenu from '../Menus/SignedInMenu';
 import { openModal } from '../../modals/modalActions';
 
@@ -40,34 +41,20 @@ class NavBar extends Component {
                 <Container>
                     <Menu.Item as={Link} to='/' header>
                         <img src="/assets/logo.png" alt="logo" />
-                    EventMe
+                    Traction Hound
                     </Menu.Item>
-                    <Menu.Item as={NavLink} to='/events' name="Events" />
-                    {authenticated && 
-                    <Menu.Item as={NavLink} to='/people' name="People" />}
-                    {authenticated &&
-                    <Menu.Item>
-                        <Button 
-                            as={Link} 
-                            to='/createEvent' 
-                            floated="right" 
-                            positive 
-                            inverted 
-                            content="Create Event" 
-                        />
-                    </Menu.Item>}
-                    {authenticated ? (
-                        <SignedInMenu 
+                    
+                    <StrategyMenu /> 
+                    <CalendarMenu />  
+                    <Menu.Item as={NavLink} to='/initiatives' name="Initiatives" />
+                    <Menu.Item as={NavLink} to='/tasks' name=" My Tasks" />
+                    <Menu.Item as={NavLink} to='/reporting' name="Reporting" />
+                    <Menu.Item as={NavLink} to='/university' name="University" />
+                    <SignedInMenu 
                             auth={auth} 
                             profile={profile} 
                             signOut={this.handleSignOut} 
                         /> 
-                    ) : (
-                        <SignedOutMenu 
-                            signIn={this.handleSignIn} 
-                            register={this.handleRegister}
-                        />
-                    )}
                 </Container>
             </Menu>
         );

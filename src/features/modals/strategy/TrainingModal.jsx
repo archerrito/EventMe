@@ -16,7 +16,7 @@ class LoginModal extends Component {
                 onClose={this.props.closeModal}
             >
                 <Modal.Header>
-                    Login to Traction Hound
+                    Train Candidates
                 </Modal.Header>
                 <Modal.Content>
                     <Modal.Description>
